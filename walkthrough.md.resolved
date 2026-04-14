@@ -1,0 +1,66 @@
+# Hierarchical Discourse Graph RAG — Walkthrough
+
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph "Baseline RAG"
+        PDF1["📄 PDF"] --> C1["Chunks"] --> FAISS["FAISS\nVector Store"] --> LLM1["Groq LLM"]
+    end
+
+    subgraph "Novel Graph RAG"
+        PDF2["📄 PDF"] --> C2["Chunks"]
+        C2 --> L1["Layer 1\nInstances"]
+        L1 --> L2["Layer 2\nConcepts"]
+        L2 --> L3["Layer 3\nCommunities"]
+        L1 & L2 & L3 --> NEO["Neo4j"]
+        NEO --> HIER["Hierarchical\nRetrieval"]
+        HIER --> LLM2["Groq LLM"]
+    end
+
+    subgraph "Benchmark"
+        LLM1 --> EVAL["📊 Metrics\nComparison"]
+        LLM2 --> EVAL
+    end
+```
+
+## Project Files
+
+| File | Purpose |
+|------|---------|
+| [config.py](file:///d:/mini2/config.py) | Shared config, loads [.env](file:///d:/mini2/.env) credentials |
+| [gen_pdfs.py](file:///d:/mini2/gen_pdfs.py) | Generates 2 small benchmark PDFs |
+| [baseline_rag.py](file:///d:/mini2/baseline_rag.py) | Standard RAG: PDF → FAISS → Groq |
+| [graph_builder.py](file:///d:/mini2/graph_builder.py) | **Novel**: 3-layer hierarchical graph construction |
+| [graph_retriever.py](file:///d:/mini2/graph_retriever.py) | **Novel**: Hierarchical traverse-and-collect retrieval |
+| [graph_rag.py](file:///d:/mini2/graph_rag.py) | End-to-end Graph RAG pipeline |
+| [questions.json](file:///d:/mini2/questions.json) | 15 benchmark questions (factual/multi-hop/global) |
+| [benchmark.py](file:///d:/mini2/benchmark.py) | Runs both pipelines, computes metrics, generates charts |
+
+## What's Novel
+
+1. **3-Layer Graph** — Not a flat entity graph. Instances → Concepts → Communities with LLM-generated summaries
+2. **Data-Driven Edges** — Relationship types emerge from data (`improves`, `limited_by`, etc.), not a fixed taxonomy
+3. **Top-Down Retrieval** — Community match → Concept drill → Instance BFS, instead of flat vector similarity
+
+## Setup & Run
+
+```bash
+# 1. Fill .env with your actual credentials
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Generate benchmark PDFs
+python gen_pdfs.py
+
+# 4. Test baseline RAG alone
+python baseline_rag.py --pdf data/ai_agents.pdf --query "What is ReAct?"
+
+# 5. Build graph + test Graph RAG
+python graph_rag.py --pdf data/ai_agents.pdf --build --query "What is ReAct?"
+
+# 6. Full benchmark comparison
+python benchmark.py --pdf data/ai_agents.pdf
+```
+
+Output in `results/`: `baseline_results.json`, `graphrag_results.json`, `comparison_chart.png`

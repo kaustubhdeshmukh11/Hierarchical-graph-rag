@@ -1,0 +1,14 @@
+python-dotenv
+pymupdf
+sentence-transformers
+faiss-cpu
+groq
+neo4j
+networkx
+cdlib
+ragas
+langchain
+langchain-groq
+matplotlib
+fpdf2
+pyvis

@@ -1,3 +1,8 @@
+import sys, io
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
 """
 Graph RAG — End-to-End Pipeline.
 
@@ -36,55 +41,98 @@ def generate_answer(query: str, context_chunks: list[str],
                     relationships: list[dict] = None) -> str:
     """Generate an answer using Groq, with context from hierarchical retrieval.
 
-    Uses a concise, grounded prompt to avoid faithfulness penalties from
-    over-synthesis or speculative reasoning.
+    Multi-hop improvements:
+    - Relationships with evidence placed BEFORE chunks (prominent position)
+    - System message instructs LLM to follow relationship chains
+    - Evidence text included for each relationship
+    - Simple retry with 60s wait on rate limit errors
     """
     client = Groq(api_key=config.GROQ_API_KEY)
 
-    # Build lightweight relationship context (fewer, no discourse paths)
-    rel_info = ""
+    # Build evidence-rich relationship section — placed BEFORE chunks
+    max_rels = getattr(config, "MAX_RELATIONSHIPS_FOR_LLM", 15)
+    rel_section = ""
     if relationships:
         rel_lines = []
-        for r in relationships[:8]:  # cap at 8 (was 15 — too much noise)
-            rel_lines.append(
-                f"  - {r['source']} → {r['type']} → {r['target']}"
-            )
-        rel_info = (
-            "\n\nKEY RELATIONSHIPS:\n"
+        for i, r in enumerate(relationships[:max_rels]):
+            evidence = r.get("evidence", "").strip()[:300]
+            if evidence:
+                rel_lines.append(
+                    f"  {i+1}. {r['source']} —[{r['type']}]→ {r['target']}: "
+                    f"\"{evidence}\""
+                )
+            else:
+                rel_lines.append(
+                    f"  {i+1}. {r['source']} —[{r['type']}]→ {r['target']}"
+                )
+        rel_section = (
+            "KNOWLEDGE GRAPH RELATIONSHIPS (use these to connect facts "
+            "across different passages):\n"
             + "\n".join(rel_lines)
+            + "\n\n"
         )
 
-    context = "\n\n---\n\n".join(context_chunks)
+    # Truncate each chunk
+    max_chars = getattr(config, "MAX_CHUNK_CHARS", 600)
+    truncated = []
+    for chunk in context_chunks:
+        if len(chunk) > max_chars:
+            truncated.append(chunk[:max_chars] + "...")
+        else:
+            truncated.append(chunk)
+    context = "\n\n---\n\n".join(truncated)
 
     system_msg = (
         "You are a knowledgeable expert assistant. You answer questions "
-        "based strictly on the provided context. You are concise and precise. "
-        "You never speculate or add information not directly stated in the context."
+        "based strictly on the provided context. You are thorough and precise. "
+        "You never speculate or add information not directly stated in the context. "
+        "When answering multi-hop or global questions, carefully synthesize "
+        "information from ALL provided passages and relationship chains "
+        "to build a complete, well-structured answer."
     )
 
     prompt = (
-        "Answer the question below using ONLY the provided context.\n\n"
+        "Answer the question below using ONLY the provided context and "
+        "relationship information.\n\n"
         "RULES:\n"
-        "- Be CONCISE: answer in 1-3 short paragraphs maximum\n"
-        "- Use ONLY facts explicitly stated in the context\n"
+        "- Be THOROUGH: include all relevant facts from the context\n"
+        "- Use ONLY facts explicitly stated in the context or relationships\n"
+        "- Follow relationship chains to connect facts across passages\n"
+        "- Quote specific names, numbers, and dates from the context\n"
+        "- For multi-hop questions: trace the full chain of events step by step\n"
+        "- For global questions: cover all relevant entities and their connections\n"
         "- Do NOT infer, speculate, or add interpretive commentary\n"
         "- If the context does not contain enough information, say so clearly\n\n"
-        f"CONTEXT:\n{context}"
-        f"{rel_info}\n\n"
+        f"{rel_section}"
+        f"SUPPORTING CONTEXT PASSAGES:\n{context}\n\n"
         f"QUESTION: {query}\n\n"
         "ANSWER:"
     )
 
-    response = client.chat.completions.create(
-        model=config.GROQ_MODEL,
-        messages=[
-            {"role": "system", "content": system_msg},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=config.LLM_TEMPERATURE,
-        max_tokens=config.LLM_MAX_TOKENS,
-    )
-    return strip_think(response.choices[0].message.content.strip())
+    # Simple retry with wait on rate limit / TPM errors
+    for attempt in range(3):
+        try:
+            response = client.chat.completions.create(
+                model=config.GROQ_MODEL,
+                messages=[
+                    {"role": "system", "content": system_msg},
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=config.LLM_TEMPERATURE,
+                max_tokens=config.LLM_MAX_TOKENS,
+            )
+            return strip_think(response.choices[0].message.content.strip())
+        except Exception as e:
+            err_str = str(e)
+            if ("413" in err_str or "rate_limit" in err_str.lower()
+                    or "too large" in err_str.lower()):
+                wait = 60 * (attempt + 1)
+                print(f"  [TPM] Rate limited (attempt {attempt+1}/3) "
+                      f"— waiting {wait}s...")
+                time.sleep(wait)
+            else:
+                raise
+    return "Could not generate answer due to API rate limits."
 
 
 # ─── Full Pipeline ───────────────────────────────────────────────────────────

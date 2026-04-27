@@ -31,7 +31,7 @@ from neo4j import GraphDatabase
 from sentence_transformers import SentenceTransformer
 
 import config
-from lib.groq_utils import safe_groq_call, parse_json_from_llm
+from lib.groq_utils import safe_groq_call, parse_json_from_llm, TokenLimitError
 
 
 # =============================================================================
@@ -474,60 +474,98 @@ Return ONLY valid JSON:
 """
 
 
-def generate_concepts(entities: list[dict], client: Groq) -> list[dict]:
-    """Group instance entities into abstract concept nodes."""
-    # Build the entity name lookup for resolution
+def _resolve_concept_members(concepts: list[dict], entities: list[dict]) -> list[dict]:
+    """Resolve member names in concepts to actual entity names."""
     entity_names = set()
-    entity_names_lower = {}  # lower -> original
+    entity_names_lower = {}
     for e in entities:
         if isinstance(e, dict) and "name" in e:
             entity_names.add(e["name"])
             entity_names_lower[e["name"].lower()] = e["name"]
 
-    entity_lines = []
+    for c in concepts:
+        if not isinstance(c, dict):
+            continue
+        c["name"] = c.get("name", "Unknown Concept").strip()
+        resolved_members = []
+        for m in c.get("members", []):
+            m = m.strip()
+            if m in entity_names:
+                resolved_members.append(m)
+            elif m.lower() in entity_names_lower:
+                resolved_members.append(entity_names_lower[m.lower()])
+            elif m.strip().title().lower() in entity_names_lower:
+                resolved_members.append(entity_names_lower[m.strip().title().lower()])
+            else:
+                matched = False
+                for en in entity_names:
+                    if m.lower() in en.lower() or en.lower() in m.lower():
+                        resolved_members.append(en)
+                        matched = True
+                        break
+                if not matched:
+                    print(f"       [Concept] Warning: member \"{m}\" not found in entities, skipping")
+        c["members"] = resolved_members
+
+    return [c for c in concepts if len(c.get("members", [])) >= 2]
+
+
+def _build_entity_list_text(entities: list[dict], max_chars: int = 6000) -> str:
+    """Build entity list text for the concept prompt, truncating if needed."""
+    lines = []
+    total = 0
     for e in entities:
         if isinstance(e, dict) and "name" in e:
             etype = e.get("type", "OTHER")
-            desc = e.get("description", "")
-            entity_lines.append(f"- {e['name']} [{etype}]: {desc}")
-    entity_list = "\n".join(entity_lines)
+            desc = e.get("description", "")[:80]  # cap description length
+            line = f"- {e['name']} [{etype}]: {desc}"
+            if total + len(line) > max_chars:
+                break
+            lines.append(line)
+            total += len(line) + 1
+    return "\n".join(lines)
 
-    prompt = CONCEPT_PROMPT.format(entity_list=entity_list)
-    response = safe_groq_call(client, prompt, system_message=CONCEPT_SYSTEM_MSG)
-    result = parse_json_from_llm(response)
 
-    concepts = result.get("concepts", []) if isinstance(result, dict) else []
-    for c in concepts:
-        if isinstance(c, dict):
-            c["name"] = c.get("name", "Unknown Concept").strip()
-            # Resolve member names to actual entity names
-            resolved_members = []
-            for m in c.get("members", []):
-                m = m.strip()
-                if m in entity_names:
-                    # Exact match
-                    resolved_members.append(m)
-                elif m.lower() in entity_names_lower:
-                    # Case-insensitive match
-                    resolved_members.append(entity_names_lower[m.lower()])
-                elif m.strip().title().lower() in entity_names_lower:
-                    resolved_members.append(entity_names_lower[m.strip().title().lower()])
-                else:
-                    # Fuzzy: check if any entity name contains this or vice versa
-                    matched = False
-                    for en in entity_names:
-                        if m.lower() in en.lower() or en.lower() in m.lower():
-                            resolved_members.append(en)
-                            matched = True
-                            break
-                    if not matched:
-                        print(f"       [Concept] Warning: member \"{m}\" not found in entities, skipping")
-            c["members"] = resolved_members
+def generate_concepts(entities: list[dict], client: Groq) -> list[dict]:
+    """Group instance entities into abstract concept nodes.
 
-    # Filter out concepts with fewer than 2 resolved members
-    concepts = [c for c in concepts if len(c.get("members", [])) >= 2]
+    Token-limit aware: if the entity list is too large, it splits entities
+    into batches and merges the resulting concepts.
+    """
+    MAX_ENTITIES_PER_BATCH = 25
 
-    return concepts
+    if len(entities) <= MAX_ENTITIES_PER_BATCH:
+        batches = [entities]
+    else:
+        batches = []
+        for i in range(0, len(entities), MAX_ENTITIES_PER_BATCH):
+            batches.append(entities[i:i + MAX_ENTITIES_PER_BATCH])
+        print(f"       [Concept] {len(entities)} entities -> {len(batches)} batches of ~{MAX_ENTITIES_PER_BATCH}")
+
+    all_concepts = []
+    for batch_idx, batch_entities in enumerate(batches):
+        entity_list = _build_entity_list_text(batch_entities)
+        prompt = CONCEPT_PROMPT.format(entity_list=entity_list)
+
+        try:
+            response = safe_groq_call(client, prompt, system_message=CONCEPT_SYSTEM_MSG)
+        except TokenLimitError:
+            # Trim descriptions more aggressively and retry
+            print(f"       [Concept] Token limit hit — trimming descriptions...")
+            entity_list = _build_entity_list_text(batch_entities, max_chars=3000)
+            prompt = CONCEPT_PROMPT.format(entity_list=entity_list)
+            response = safe_groq_call(client, prompt, system_message=CONCEPT_SYSTEM_MSG)
+
+        result = parse_json_from_llm(response)
+        concepts = result.get("concepts", []) if isinstance(result, dict) else []
+        resolved = _resolve_concept_members(concepts, entities)  # resolve against ALL entities
+        all_concepts.extend(resolved)
+
+        if len(batches) > 1:
+            print(f"       [Concept] Batch {batch_idx+1}/{len(batches)}: {len(resolved)} concepts")
+            time.sleep(3)  # cooldown between batches
+
+    return all_concepts
 
 
 # =============================================================================
@@ -612,7 +650,10 @@ def detect_communities(concepts: list[dict]) -> list[list[int]]:
 def generate_community_summaries(
     communities: list[list[int]], concepts: list[dict], client: Groq
 ) -> list[dict]:
-    """Generate a summary for each detected community."""
+    """Generate a summary for each detected community.
+
+    Token-limit aware: truncates member lists if prompt is too large.
+    """
     community_nodes = []
     for idx, member_indices in enumerate(communities):
         concept_descs = []
@@ -622,19 +663,39 @@ def generate_community_summaries(
             concept_descs.append(f"- {c['name']}: {c.get('description', '')}")
             all_members.extend(c.get("members", []))
 
+        unique_members = list(set(all_members))
+        member_list = ", ".join(unique_members)
+
         prompt = COMMUNITY_SUMMARY_PROMPT.format(
             concept_descriptions="\n".join(concept_descs),
-            member_list=", ".join(set(all_members)),
+            member_list=member_list,
         )
-        summary = safe_groq_call(client, prompt, system_message=COMMUNITY_SYSTEM_MSG)
+
+        try:
+            summary = safe_groq_call(client, prompt, system_message=COMMUNITY_SYSTEM_MSG)
+        except TokenLimitError:
+            # Truncate member list and retry
+            print(f"       [Community] Token limit — trimming to 15 members...")
+            member_list = ", ".join(unique_members[:15])
+            prompt = COMMUNITY_SUMMARY_PROMPT.format(
+                concept_descriptions="\n".join(concept_descs),
+                member_list=member_list,
+            )
+            summary = safe_groq_call(client, prompt, system_message=COMMUNITY_SYSTEM_MSG)
+
+        if not summary:
+            summary = f"Community covering: {member_list[:200]}"
 
         community_nodes.append({
             "id": f"community_{idx}",
             "name": f"Community {idx + 1}",
             "summary": summary,
             "concept_indices": member_indices,
-            "member_entities": list(set(all_members)),
+            "member_entities": unique_members,
         })
+
+        if idx < len(communities) - 1:
+            time.sleep(3)  # cooldown between community LLM calls
 
     return community_nodes
 
@@ -832,12 +893,37 @@ def build_graph(input_path: str, use_cache: bool = True) -> dict:
             print(f"       Batch chunks {batch_start + 1}-{batch_end}/{len(chunks)} "
                   f"({len(batch)} chunks in 1 call) ...", end=" ", flush=True)
 
-            batch_results = extract_instances_batch(batch, batch_start, client)
+            try:
+                batch_results = extract_instances_batch(batch, batch_start, client)
+            except TokenLimitError:
+                # If batch is too large, try one chunk at a time
+                print(f"[token limit — splitting]")
+                batch_results = []
+                for ci, single_chunk in enumerate(batch):
+                    try:
+                        sr = extract_instances_batch([single_chunk], batch_start + ci, client)
+                        batch_results.extend(sr)
+                    except TokenLimitError:
+                        print(f"       Chunk {batch_start + ci} too large, skipping")
+                        batch_results.append({"entities": [], "relationships": []})
+
             llm_calls_used += 1
 
             totals_e = sum(len(r.get("entities", [])) for r in batch_results)
             totals_r = sum(len(r.get("relationships", [])) for r in batch_results)
             print(f"=> {totals_e} entities, {totals_r} relationships")
+
+            # Retry once if rate limit caused 0 results for non-empty chunks
+            if totals_e == 0 and any(c.strip() for c in batch):
+                print(f"       [Retry] 0 entities — waiting 30s and retrying...", end=" ", flush=True)
+                time.sleep(30)
+                try:
+                    batch_results = extract_instances_batch(batch, batch_start, client)
+                    totals_e = sum(len(r.get("entities", [])) for r in batch_results)
+                    totals_r = sum(len(r.get("relationships", [])) for r in batch_results)
+                    print(f"=> {totals_e} entities, {totals_r} relationships")
+                except Exception as e:
+                    print(f"retry failed: {e}")
 
             all_extractions.extend(batch_results)
 
@@ -849,13 +935,32 @@ def build_graph(input_path: str, use_cache: bool = True) -> dict:
           f"{len(instances['relationships'])} relationships")
 
     # ── Step 4: Concept Generation (Layer 2) ─────────────────────────────────
+    # Cooldown before concept generation to avoid rate-limit carry-over
+    if not cached_extractions:
+        cooldown = 30
+        print(f"\n       [Cooldown] Waiting {cooldown}s before concept generation "
+              f"to avoid rate limits...")
+        time.sleep(cooldown)
+
     print("[5/6] Layer 2: Generating concepts (1 LLM call) ...")
     concepts = generate_concepts(instances["entities"], client)
+
+    # Retry if rate limit produced 0 concepts
+    if not concepts:
+        for retry in range(1, 4):
+            wait = 60 * retry
+            print(f"       [Retry] 0 concepts returned — waiting {wait}s "
+                  f"(attempt {retry}/3) ...")
+            time.sleep(wait)
+            concepts = generate_concepts(instances["entities"], client)
+            if concepts:
+                break
+
     print(f"       {len(concepts)} concepts created")
     for c in concepts:
         members_preview = ", ".join(c.get("members", [])[:3])
         print(f"         - {c['name']}: {members_preview}...")
-    time.sleep(1)
+    time.sleep(3)  # buffer before community summaries
 
     # ── Step 5: Community Detection (Layer 3) ─────────────────────────────────
     print("[6/6] Layer 3: Detecting communities ...")
@@ -926,7 +1031,7 @@ def main():
     args = parser.parse_args()
 
     # Resolve input path: --input takes priority, then --pdf, then default
-    input_path = args.input or args.pdf or "data/nexora_industries.pdf"
+    input_path = args.input or args.pdf or os.path.join("data", "meridian")
 
     if not os.path.exists(input_path):
         print(f"Error: Input not found: {input_path}")

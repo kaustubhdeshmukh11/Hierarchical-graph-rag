@@ -231,17 +231,25 @@ def collect_instances(concept_names: list[str], driver,
     return entities[:max_entities]
 
 
-# ─── Step 4: Collect Extracted Relationships ─────────────────────────────────
+# ─── Step 4: Collect Extracted Relationships (expanded for multi-hop) ────────
 
 def collect_relationships(entity_names: list[str], driver) -> list[dict]:
     """Query Neo4j for all relationship edges between the retrieved entities.
 
     Returns a list of dicts with source, target, type, evidence.
+
+    Multi-hop improvement: Also finds relationships where only ONE endpoint is
+    in our entity set — this catches cross-document bridging relationships
+    that connect entities from different parts of the graph.
     """
     if not entity_names:
         return []
 
+    relationships = []
+    seen_rels = set()
+
     with driver.session() as session:
+        # Primary: relationships between retrieved entities (both endpoints known)
         result = session.run(
             """
             MATCH (a:Entity)-[r]->(b:Entity)
@@ -251,8 +259,30 @@ def collect_relationships(entity_names: list[str], driver) -> list[dict]:
             """,
             names=entity_names,
         )
-        relationships = []
-        seen_rels = set()
+        for record in result:
+            rel_key = f"{record['source']}|{record['rel_type']}|{record['target']}"
+            if rel_key not in seen_rels:
+                seen_rels.add(rel_key)
+                relationships.append({
+                    "source": record["source"],
+                    "target": record["target"],
+                    "type": record["rel_type"],
+                    "evidence": record["evidence"] or "",
+                })
+
+        # Secondary: relationships extending ONE hop beyond retrieved entities
+        # This catches bridging edges that link to entities in other documents
+        result = session.run(
+            """
+            MATCH (a:Entity)-[r]->(b:Entity)
+            WHERE (a.name IN $names OR b.name IN $names)
+              AND NOT (a.name IN $names AND b.name IN $names)
+            RETURN a.name AS source, b.name AS target,
+                   type(r) AS rel_type, r.evidence AS evidence
+            LIMIT 30
+            """,
+            names=entity_names,
+        )
         for record in result:
             rel_key = f"{record['source']}|{record['rel_type']}|{record['target']}"
             if rel_key not in seen_rels:
@@ -267,19 +297,84 @@ def collect_relationships(entity_names: list[str], driver) -> list[dict]:
     return relationships
 
 
-# ─── Step 5: Assemble Context from Original Chunks ──────────────────────────
+def order_relationship_chain(relationships: list[dict]) -> list[dict]:
+    """Topologically sort relationships into narrative chains.
+
+    Instead of random order, relationships are ordered so that the target
+    of one relationship becomes the source of the next, forming readable
+    causal chains that dramatically improve LLM multi-hop reasoning.
+    """
+    if len(relationships) <= 1:
+        return relationships
+
+    # Build adjacency from source -> list of relationship indices
+    source_map = {}  # entity_name -> [rel_indices where it's source]
+    target_set = set()
+    for i, r in enumerate(relationships):
+        source_map.setdefault(r["source"], []).append(i)
+        target_set.add(r["target"])
+
+    # Find chain starters: sources that are NOT targets of any relationship
+    starters = []
+    for src in source_map:
+        if src not in target_set:
+            starters.append(src)
+
+    # If no clear starters, use all sources as potential starters
+    if not starters:
+        starters = list(source_map.keys())
+
+    # Greedy chain building: follow source -> target chains
+    ordered = []
+    used = set()
+
+    for start in starters:
+        current = start
+        while current in source_map:
+            added_any = False
+            for idx in source_map[current]:
+                if idx not in used:
+                    used.add(idx)
+                    ordered.append(relationships[idx])
+                    current = relationships[idx]["target"]
+                    added_any = True
+                    break
+            if not added_any:
+                break
+
+    # Add any remaining relationships not in chains
+    for i, r in enumerate(relationships):
+        if i not in used:
+            ordered.append(r)
+
+    return ordered
+
+
+# ─── Step 5: Assemble Context from Original Chunks (multi-hop aware) ────────
 
 def assemble_context(entity_names: list[str], driver,
                      query_embedding: np.ndarray = None,
                      embed_model: SentenceTransformer = None,
-                     top_k: int = None) -> list[str]:
+                     top_k: int = None,
+                     relationship_entity_names: list[str] = None) -> list[str]:
     """Find the original text chunks that contain the collected entities,
     rerank by cosine similarity to query, and cap at top_k for focus.
+
+    Multi-hop improvement: also retrieves chunks for entities discovered
+    through relationship edges (relationship_entity_names), ensuring
+    cross-document bridging chunks are included.
 
     This prevents context overload — without capping, BFS on small graphs
     can return 80%+ of all chunks, which kills faithfulness scores.
     """
     top_k = top_k or config.GRAPH_TOP_K_CHUNKS
+
+    # Merge entity names from BFS traversal AND relationship endpoints
+    all_entity_names = list(set(entity_names))
+    if relationship_entity_names:
+        for name in relationship_entity_names:
+            if name not in all_entity_names:
+                all_entity_names.append(name)
 
     with driver.session() as session:
         result = session.run(
@@ -290,7 +385,7 @@ def assemble_context(entity_names: list[str], driver,
                    ch.embedding AS embedding
             ORDER BY ch.index
             """,
-            names=entity_names,
+            names=all_entity_names,
         )
         seen_ids = set()
         chunks = []
@@ -313,9 +408,50 @@ def assemble_context(entity_names: list[str], driver,
             else:
                 chunk["similarity"] = 0.0
         chunks.sort(key=lambda x: x["similarity"], reverse=True)
-    
-    # Cap at top_k to prevent context overload
-    chunks = chunks[:top_k]
+
+    # ── Document-diversity-aware selection ────────────────────────────────
+    # Multi-hop queries need facts from MULTIPLE source documents.
+    # Pure cosine reranking picks chunks from 1-2 dominant docs only.
+    # Fix: pick top-2 chunks from each source doc FIRST, then fill by similarity.
+
+    if len(chunks) > top_k:
+        # Detect source document from chunk text header
+        def _detect_source(text):
+            for line in text.split("\n")[:3]:
+                line = line.strip()
+                if line and len(line) > 10 and not line.startswith("("):
+                    return line[:80]
+            return "unknown"
+
+        # Group by source document
+        doc_groups = {}
+        for chunk in chunks:
+            src = _detect_source(chunk["text"])
+            doc_groups.setdefault(src, []).append(chunk)
+
+        # Diversity pass: top-2 from each document (multi-hop needs more coverage)
+        selected = []
+        selected_ids = set()
+        for src, group in doc_groups.items():
+            for chunk in group[:2]:  # take top-2 per document
+                selected.append(chunk)
+                selected_ids.add(id(chunk))
+
+        # Fill remaining slots by global similarity ranking
+        remaining = top_k - len(selected)
+        if remaining > 0:
+            for chunk in chunks:
+                if id(chunk) not in selected_ids:
+                    selected.append(chunk)
+                    remaining -= 1
+                    if remaining <= 0:
+                        break
+
+        chunks = selected[:top_k]
+        print(f"  [Retrieve] Diversity reranking: {len(doc_groups)} source docs, "
+              f"{len(chunks)} chunks selected")
+    else:
+        chunks = chunks[:top_k]
 
     # Re-sort by chunk index for logical reading order
     chunks.sort(key=lambda x: x["idx"])
@@ -371,10 +507,28 @@ def retrieve(query: str, embed_model: SentenceTransformer = None) -> dict:
         relationships = collect_relationships(entity_names, driver)
         print(f"  [Retrieve] Collected {len(relationships)} relationships between entities")
 
+        # Step 4b: Order relationships into narrative chains
+        relationships = order_relationship_chain(relationships)
+
+        # Step 4c: Extract entity names from relationship endpoints
+        # These may include entities NOT in our BFS set — bridging entities
+        # from other documents that are connected via relationship edges
+        rel_entity_names = set()
+        for r in relationships:
+            rel_entity_names.add(r["source"])
+            rel_entity_names.add(r["target"])
+        # Only keep names that are NOT already in our entity set
+        extra_rel_entities = [n for n in rel_entity_names if n not in set(entity_names)]
+        if extra_rel_entities:
+            print(f"  [Retrieve] Found {len(extra_rel_entities)} bridging entities "
+                  f"from relationship edges")
+
         # Step 5: Assemble Context (batched + reranked + capped)
+        # Pass relationship-derived entity names for cross-document chunk retrieval
         context_chunks = assemble_context(entity_names, driver,
                                           query_embedding=query_emb,
-                                          embed_model=embed_model)
+                                          embed_model=embed_model,
+                                          relationship_entity_names=extra_rel_entities)
         print(f"  [Retrieve] Assembled {len(context_chunks)} context chunks "
               f"(capped at {config.GRAPH_TOP_K_CHUNKS})")
 

@@ -1,0 +1,11 @@
+{
+  "document": "meridian",
+  "characters": 23397,
+  "chunks": 18,
+  "llm_calls": 15,
+  "entities": 49,
+  "relationships": 63,
+  "concepts": 13,
+  "communities": 8,
+  "build_time_s": 742.93
+}

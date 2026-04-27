@@ -1,3 +1,8 @@
+import sys, io
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
 """
 Benchmark — Quantitative RAG vs Graph RAG Comparison.
 
@@ -167,7 +172,7 @@ def llm_context_recall(ground_truth: str, context: list[str], client: Groq) -> f
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-#  EMBEDDING-BASED METRICS (answer_relevancy, context_precision)
+#  EMBEDDING-BASED METRICS (answer_relevancy, avg_relevance_score)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def _cosine_sim(a, b):
@@ -182,7 +187,7 @@ def embedding_answer_relevancy(query: str, answer: str,
     return round(_cosine_sim(q_emb, a_emb), 4)
 
 
-def embedding_context_precision(query: str, context: list[str],
+def embedding_avg_relevance_score(query: str, context: list[str],
                                  embed_model: SentenceTransformer) -> float:
     """Average cosine similarity of each context chunk to the query."""
     if not context:
@@ -204,12 +209,12 @@ def compute_metrics(query: str, answer: str, context: list[str],
 
     Metrics:
       - answer_relevancy:  embedding cosine sim (query vs answer)
-      - context_precision:  embedding cosine sim (query vs each chunk, averaged)
+      - avg_relevance_score:  embedding cosine sim (query vs each chunk, averaged)
       - faithfulness:  LLM-as-judge (are answer claims grounded in context?)
       - context_recall:  LLM-as-judge (does context contain ground truth info?)
     """
     answer_relevancy = embedding_answer_relevancy(query, answer, embed_model)
-    context_precision = embedding_context_precision(query, context, embed_model)
+    avg_relevance_score = embedding_avg_relevance_score(query, context, embed_model)
     faithfulness = llm_faithfulness(answer, context, groq_client)
     context_recall = llm_context_recall(ground_truth, context, groq_client)
 
@@ -217,7 +222,7 @@ def compute_metrics(query: str, answer: str, context: list[str],
         "answer_relevancy": round(answer_relevancy, 4),
         "faithfulness": round(faithfulness, 4),
         "context_recall": round(context_recall, 4),
-        "context_precision": round(context_precision, 4),
+        "avg_relevance_score": round(avg_relevance_score, 4),
     }
 
 
@@ -293,7 +298,7 @@ def run_baseline(input_path: str, questions: list[dict], embed_model,
                 "context": [],
                 "ground_truth": q["ground_truth"],
                 "metrics": {"answer_relevancy": 0, "faithfulness": 0,
-                           "context_recall": 0, "context_precision": 0},
+                           "context_recall": 0, "avg_relevance_score": 0},
             })
             time.sleep(5)
 
@@ -361,7 +366,7 @@ def aggregate_metrics(results: list[dict]) -> dict:
     aggregated = {}
     for cat, metric_list in categories.items():
         aggregated[cat] = {}
-        for metric_name in ["answer_relevancy", "faithfulness", "context_recall", "context_precision"]:
+        for metric_name in ["answer_relevancy", "faithfulness", "context_recall", "avg_relevance_score"]:
             values = [m[metric_name] for m in metric_list]
             aggregated[cat][metric_name] = round(np.mean(values), 4)
 
@@ -425,7 +430,7 @@ def generate_comparison_chart(baseline_agg: dict, graphrag_agg: dict, output_pat
 def print_summary_table(baseline_agg: dict, graphrag_agg: dict):
     """Print a formatted comparison table."""
     categories = ["factual", "multi-hop", "global", "overall"]
-    metrics = ["answer_relevancy", "faithfulness", "context_recall", "context_precision"]
+    metrics = ["answer_relevancy", "faithfulness", "context_recall", "avg_relevance_score"]
 
     print("\n" + "=" * 80)
     print("BENCHMARK RESULTS SUMMARY")
@@ -433,7 +438,7 @@ def print_summary_table(baseline_agg: dict, graphrag_agg: dict):
     print(f"  Faithfulness:      LLM-as-judge (claim grounding)")
     print(f"  Context Recall:    LLM-as-judge (ground truth coverage)")
     print(f"  Answer Relevancy:  Embedding cosine similarity")
-    print(f"  Context Precision: Embedding cosine similarity")
+    print(f"  Avg Rel. Score:    Mean cosine similarity (query vs context chunks)")
     print("-" * 80)
 
     header = f"{'Category':<12} {'Metric':<20} {'Baseline RAG':>12} {'Graph RAG':>12} {'Delta':>8}"

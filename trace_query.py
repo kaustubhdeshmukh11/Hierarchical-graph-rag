@@ -47,29 +47,30 @@ from lib.groq_utils import safe_groq_call, strip_think
 DEMO_QUERIES = [
     {
         "label": "Multi-Hop Reasoning",
-        "question": "How does burning fossil fuels lead to rising sea levels?",
+        "question": "How did the Incident Nightfall data breach affect Meridian's product development and research direction?",
         "why": (
-            "Tests multi-hop traversal: Fossil Fuels --[emits]--> CO2 "
-            "--[causes]--> Global Warming --[melts]--> Ice Sheets --> Sea Level Rise. "
-            "Requires connecting entities across 4+ sections."
+            "Tests multi-hop traversal: Incident Nightfall --[caused]--> Project Fortress "
+            "--[hired]--> Arjun Mehta, and Incident Nightfall --[influenced]--> "
+            "Dr. Rahman + Arjun Mehta --[developed]--> federated learning. "
+            "Requires connecting entities across data_breach and ai_research documents."
         ),
     },
     {
         "label": "Concept-Level Retrieval",
-        "question": "What renewable energy solutions are being used to reduce carbon emissions?",
+        "question": "What are all the major products and platforms that Meridian developed?",
         "why": (
             "Tests concept-level grouping: should match concepts like "
-            "'Renewable Energy Technologies' that group Solar, Wind, Hydro, Nuclear, "
-            "and Battery Storage entities together."
+            "'Healthcare Product Ecosystem' that group HealthBridge, MediScan, "
+            "PharmaTrack, CovidShield, MediPredict, and Meridian Connect together."
         ),
     },
     {
         "label": "Community-Level Synthesis",
-        "question": "How has international climate policy evolved from the 1990s to today?",
+        "question": "How did the NovaCare partnership evolve from the founding years through the COVID-19 pandemic?",
         "why": (
-            "Tests community matching: should match a 'Climate Policy' community, "
-            "then drill through policy concepts (UNFCCC, Kyoto, Paris Agreement, COP28) "
-            "to synthesize a timeline."
+            "Tests community matching: should match communities spanning founding, "
+            "growth, crisis, and COVID response. Traces NovaCare through HealthBridge "
+            "adoption, MediScan deployment, Incident Nightfall strain, and CovidShield."
         ),
     },
 ]
@@ -526,7 +527,7 @@ def main():
         "+" + "=" * 70 + "+\n"
         f"\n  Generated: {now}\n"
         f"  Model:     {config.GROQ_MODEL}\n"
-        f"  Topic:     Climate Change\n"
+        f"  Topic:     Meridian Health Systems\n"
         f"  Graph:     3-Layer (Community -> Concept -> Entity)\n"
         f"  Settings:  top_k_communities={config.TOP_K_COMMUNITIES}, "
         f"max_hops={config.MAX_HOPS}, "

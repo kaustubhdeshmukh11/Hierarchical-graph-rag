@@ -1,0 +1,15 @@
+MERIDIAN HEALTH SYSTEMS — FOUNDING AND EARLY YEARS (2014-2017)
+
+Dr. Ananya Kapoor, a former biomedical researcher at the Indian Institute of Science (IISc) Bangalore, founded Meridian Health Systems in January 2014. Her vision was to create an integrated healthcare data platform that could connect hospitals, diagnostic labs, and pharmacies across India's fragmented healthcare ecosystem. She recruited Dr. Vikram Nair, an AI specialist from MIT, as the Chief Technology Officer.
+
+The company's first product, HealthBridge API, launched in March 2015. HealthBridge was a middleware platform that standardized patient records across different hospital management systems. It used HL7 FHIR protocols and supported integration with over 40 electronic health record (EHR) systems used across Indian hospitals. Within its first year, HealthBridge processed over 2 million patient record transfers between 85 partner hospitals.
+
+In August 2015, Meridian secured Series A funding of $4.2 million from Sequoia Capital India and HealthVenture Partners. The funding was used to expand the engineering team from 12 to 45 people and open a second office in Hyderabad. Priya Sharma, formerly of Infosys Health, joined as VP of Operations to manage the rapid scaling.
+
+The first major partnership came in December 2015 when NovaCare Clinics, a chain of 120 primary care centers across Maharashtra and Karnataka, adopted HealthBridge as their standard data exchange platform. This deal was worth $1.8 million annually and gave Meridian access to anonymized data from over 3 million patient visits per year. Dr. Rajesh Sundaram, CEO of NovaCare, described the partnership as "transformative for rural healthcare delivery."
+
+In 2016, Dr. Vikram Nair led the development of MediScan, Meridian's second major product. MediScan was an AI-powered diagnostic assistance tool that analyzed medical imaging data — primarily X-rays and CT scans — to flag potential abnormalities. The system was trained on a dataset of 500,000 annotated medical images obtained through the NovaCare partnership and academic collaborations with AIIMS Delhi.
+
+MediScan achieved a diagnostic accuracy of 94.2% for detecting pulmonary tuberculosis in chest X-rays during clinical trials conducted at NovaCare clinics in rural Karnataka. These results were published in the Indian Journal of Medical Research in November 2016, authored by Dr. Nair and Dr. Meera Krishnan, Meridian's Head of Clinical AI.
+
+By early 2017, Meridian had 78 employees across Bangalore and Hyderabad, processed over 8 million patient records annually through HealthBridge, and had pilot deployments of MediScan in 35 hospitals. Revenue reached $3.5 million, primarily from HealthBridge licensing fees and the NovaCare contract.

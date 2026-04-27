@@ -12,12 +12,12 @@ load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_MODEL = "qwen/qwen3-32b"
 LLM_TEMPERATURE = 0.0
-LLM_MAX_TOKENS = 4096
+LLM_MAX_TOKENS = 2048          # allow richer, more detailed answers
 
 # -- Groq Rate Limits (free tier: 30 req/min, 6000 req/day) -------------------
 GROQ_MAX_RPM = 28              # sliding-window cap (keep 2 buffer below 30)
-GROQ_RETRY_ATTEMPTS = 3        # max retries on 429 / transient errors
-GROQ_INTER_CALL_DELAY = 2      # seconds to sleep between consecutive LLM calls
+GROQ_RETRY_ATTEMPTS = 5        # max retries on 429 / transient errors
+GROQ_INTER_CALL_DELAY = 4      # seconds to sleep between consecutive LLM calls
 
 # -- Neo4j Aura ----------------------------------------------------------------
 NEO4J_URI = os.getenv("NEO4J_URI", "neo4j+s://xxxxxxxx.databases.neo4j.io")
@@ -36,13 +36,15 @@ CHUNK_OVERLAP = 150   # ~10% overlap
 
 # -- Retrieval -----------------------------------------------------------------
 TOP_K_CHUNKS = 5          # baseline RAG: top-k chunks
-GRAPH_TOP_K_CHUNKS = 5    # graph RAG: cap retrieved chunks (prevents context overload)
+GRAPH_TOP_K_CHUNKS = 10   # graph RAG: cross-doc coverage via relationship-aware retrieval
+MAX_CHUNK_CHARS = 1200    # preserve more context per chunk for better faithfulness
 TOP_K_COMMUNITIES = 3     # graph RAG: top-k communities to match
-MAX_HOPS = 1              # graph RAG: BFS hops (1 = focused, 2 = too broad on small graphs)
-MIN_COMMUNITY_SIMILARITY = 0.45  # lowered: allow broader community matching for global queries
-TOP_K_CONCEPTS = 5               # max concepts kept after reranking
-MIN_CONCEPT_RELEVANCE = 0.4      # lowered: keep more concepts to improve recall
-MAX_ENTITIES = 30                # cap on entities after reranking
+MAX_HOPS = 2              # graph RAG: BFS hops (2 = reach bridging entities for multi-hop)
+MIN_COMMUNITY_SIMILARITY = 0.35  # allow broader community matching for global queries
+TOP_K_CONCEPTS = 10              # max concepts kept after reranking (multi-hop spans more concepts)
+MIN_CONCEPT_RELEVANCE = 0.3      # keep more concepts to improve recall
+MAX_ENTITIES = 25                # tighter cap avoids context dilution
+MAX_RELATIONSHIPS_FOR_LLM = 20   # more relationships sent to LLM for multi-hop chains
 
 # -- Entity Deduplication ------------------------------------------------------
 ENTITY_DEDUP_THRESHOLD = 0.95   # embedding cosine sim threshold for fuzzy merge (0.95 = conservative)

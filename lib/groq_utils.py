@@ -63,6 +63,11 @@ _rate_limiter = RateLimiter()
 #  SAFE GROQ CALL
 # =============================================================================
 
+class TokenLimitError(Exception):
+    """Raised when the prompt exceeds Groq's token limit (413)."""
+    pass
+
+
 def safe_groq_call(
     client: Groq,
     prompt: str,
@@ -84,6 +89,9 @@ def safe_groq_call(
 
     Returns:
         Cleaned response string (think tags stripped for qwen3).
+
+    Raises:
+        TokenLimitError: When the prompt exceeds the token limit (413).
     """
     retries = retries or config.GROQ_RETRY_ATTEMPTS
     temperature = temperature if temperature is not None else config.LLM_TEMPERATURE
@@ -115,20 +123,29 @@ def safe_groq_call(
             return content
 
         except Exception as e:
-            err = str(e)
-            if "rate_limit" in err.lower() or "429" in err:
+            err = str(e).lower()
+            if "413" in str(e) or "too large" in err or "token" in err and "limit" in err:
+                # Token limit — caller should trim the prompt, not retry
+                raise TokenLimitError(f"Prompt too large for model: {str(e)[:200]}")
+            elif "rate_limit" in err or "429" in str(e):
                 wait = 60 * (attempt + 1)
                 print(f"       [429] Rate limited -- waiting {wait}s (attempt {attempt+1}/{retries}) ...")
                 time.sleep(wait)
                 _rate_limiter.wait()
-            elif "quota" in err.lower() or "daily" in err.lower():
+            elif "quota" in err or "daily" in err:
                 print("       DAILY QUOTA REACHED. Cached results saved -- re-run tomorrow.")
                 raise SystemExit(1)
+            elif any(kw in err for kw in ["connection", "ssl", "timeout", "eof",
+                                           "reset", "broken pipe", "network"]):
+                wait = 10 * (attempt + 1)
+                print(f"       [Network] Connection error -- retrying in {wait}s "
+                      f"(attempt {attempt+1}/{retries}) ...")
+                time.sleep(wait)
             else:
                 if attempt == retries - 1:
                     raise
-                wait = 5 * (attempt + 1)
-                print(f"       [Error] {err[:120]} -- retrying in {wait}s ...")
+                wait = 10 * (attempt + 1)
+                print(f"       [Error] {str(e)[:120]} -- retrying in {wait}s ...")
                 time.sleep(wait)
 
     return ""

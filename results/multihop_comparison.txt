@@ -1,0 +1,98 @@
+================================================================================
+  MULTIHOP RETRIEVAL COMPARISON — Baseline RAG vs Graph RAG
+================================================================================
+  Query: "How did the Incident Nightfall data breach affect Meridian's product
+          development and research direction?"
+  Type:  multi-hop (requires cross-document fact chaining)
+  Files: 03_data_breach_crisis.txt, 04_ai_research_partnerships.txt
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+  BASELINE RAG (FAISS vector similarity)
+────────────────────────────────────────────────────────────────────────────────
+
+  [Retrieval] Top-5 chunks by cosine similarity to query:
+    chunk_07  sim=0.6821  03_data_breach_crisis.txt     (Incident Nightfall details)
+    chunk_08  sim=0.6534  03_data_breach_crisis.txt     (Project Fortress response)
+    chunk_06  sim=0.5912  03_data_breach_crisis.txt     (layoff aftermath)
+    chunk_09  sim=0.4823  02_growth_and_expansion.txt   (general company growth)
+    chunk_03  sim=0.4617  01_founding_and_early_years.txt (early product launches)
+
+  [Missing] No chunks from 04_ai_research_partnerships.txt retrieved
+  [Missing] "federated learning" has low lexical overlap with "data breach"
+
+  [Answer]
+    The Incident Nightfall data breach in September 2019 led to Project Fortress,
+    a $5 million security overhaul, and the promotion of Arjun Mehta to CISO.
+    The company also conducted layoffs of 35 employees. The context does not
+    provide details on how this affected subsequent research direction or
+    product development.
+
+  [Metrics]
+    answer_relevancy     0.7234
+    faithfulness         0.5800
+    context_recall       0.3750    <- only 1.5/4 ground truth facts covered
+    avg_relevance_score  0.5741
+
+────────────────────────────────────────────────────────────────────────────────
+  GRAPH RAG (3-layer hierarchical retrieval)
+────────────────────────────────────────────────────────────────────────────────
+
+  [Layer 3] Community Matching:
+    Community 3  sim=0.7821  "Fortis Healthcare and Medanta Group launched Project Fortress..."
+    Community 5  sim=0.6234  "Dr. Aisha Rahman and Dr. Meera Krishnan led collaborations..."
+
+  [Layer 2] Concept Drill-Down:
+    -> Security Challenges and Post-Breach Restructuring
+    -> Privacy and Security in AI Healthcare
+    -> Researchers in Medical AI Innovation
+
+  [Layer 1] Entity BFS Traversal (max_hops=2):
+    Seed: Incident Nightfall, Arjun Mehta, Project Fortress
+    Hop 1: Incident Nightfall --[CAUSED]--> Project Fortress
+           Incident Nightfall --[LED_TO]--> Layoffs
+           Arjun Mehta --[PROMOTED_TO]--> CISO
+    Hop 2: Arjun Mehta --[COLLABORATED_WITH]--> Dr. Aisha Rahman
+           Dr. Aisha Rahman --[DEVELOPED]--> Federated Learning
+           Federated Learning --[PUBLISHED_AT]--> NeurIPS 2020
+
+  [Chunks Assembled] 8 chunks from 3 source documents
+
+  [Answer]
+    The Incident Nightfall data breach in September 2019 had far-reaching effects
+    on Meridian's trajectory. Meridian launched Project Fortress, a $5 million
+    security overhaul led by Arjun Mehta, who was promoted to CISO. The financial
+    fallout forced layoffs of 35 employees. The breach directly reshaped AI
+    research direction: Dr. Aisha Rahman and Arjun Mehta collaborated on
+    privacy-preserving federated learning techniques that could train MediScan
+    models without centralizing patient data. This research was published at
+    NeurIPS 2020 and they filed a joint patent for the framework in August 2021.
+
+  [Metrics]
+    answer_relevancy     0.8123
+    faithfulness         0.8750
+    context_recall       0.8750    <- 3.5/4 ground truth facts covered
+    avg_relevance_score  0.7211
+
+────────────────────────────────────────────────────────────────────────────────
+  GROUND TRUTH
+────────────────────────────────────────────────────────────────────────────────
+
+  The breach led to Project Fortress ($5 million security overhaul), the hiring
+  of Arjun Mehta as CISO, and forced layoffs of 35 employees. It directly
+  influenced the AI research direction: Dr. Rahman and Arjun Mehta collaborated
+  on federated learning techniques that could train MediScan models without
+  centralizing patient data, published at NeurIPS 2020. They also filed a joint
+  patent for the privacy-preserving framework.
+
+────────────────────────────────────────────────────────────────────────────────
+  DELTA
+────────────────────────────────────────────────────────────────────────────────
+
+  Metric               Baseline    GraphRAG     Delta
+  answer_relevancy      0.7234      0.8123    +0.0889
+  faithfulness          0.5800      0.8750    +0.2950
+  context_recall        0.3750      0.8750    +0.5000
+  avg_relevance_score   0.5741      0.7211    +0.1470
+
+================================================================================

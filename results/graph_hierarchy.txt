@@ -1,0 +1,213 @@
++============================================================================+
+|  HIERARCHICAL GRAPH STRUCTURE — LAYERS 2 & 3                              |
++============================================================================+
+
+  Layer 3 (Communities) = Topic clusters with auto-generated summaries
+  Layer 2 (Concepts)    = Abstract themes grouping related entities
+  Layer 1 (Entities)    = See graph_visualization.html for the visual graph
+
+==============================================================================
+
+==============================================================================
+  COMMUNITY: Community 1
+==============================================================================
+
+  Summary:
+    Dr. Vikram Nair founded Meridian, which developed diagnostic
+    solutions deployed at Novacare Clinics and Telemed Singapore.
+    Meridian integrated Pharmatrack and Mediscan medication tracking
+    systems with Healthbridge and Healthline Distributors, involving
+    Cipla Ltd and Pharmacorp Global. A data breach during Incident
+    Nightfall prompted Priya Sharma to lead restructuring, while
+    Meridian acquired Medsupply India, led by Sameer Joshi, to
+    strengthen supply chain security. Dr. Ananya Kapoor expanded
+    healthcare infrastructure, and Dr. Rajesh Sundaram oversaw
+    pharmaceutical integration projects.
+
+  Concepts in this community:
+  ----------------------------------------
+    1. Meridian's Healthcare Technology Innovations
+       Core product development and deployment of diagnostic and
+       supply chain solutions
+       Entities: Dr. Ananya Kapoor, Dr. Vikram Nair, Mediscan,
+                Pharmatrack, Healthbridge, Meridian
+
+    2. Security Challenges and Post-Breach Restructuring
+       Critical security incident and organizational response to
+       data breach
+       Entities: Priya Sharma, Dr. Rajesh Sundaram, Telemed
+                Singapore, Incident Nightfall
+
+    3. Pharmaceutical Supply Chain Integration
+       Implementation of medication tracking systems across
+       distributors
+       Entities: Sameer Joshi, Cipla Ltd, Pharmatrack, Medsupply
+                India, Pharmacorp Global, Healthline Distributors
+
+    4. Healthcare Infrastructure Expansion
+       Deployment of diagnostic solutions across clinical networks
+       Entities: Novacare Clinics, Dr. Rajesh Sundaram,
+                Healthbridge
+
+==============================================================================
+  COMMUNITY: Community 2
+==============================================================================
+
+  Summary:
+    "Meridian developed Mediscan-C, an AI diagnostic tool integrated
+    into the Mediscan Diagnostic Framework, and created Transfer-Learn-
+    Validate (TLV) as a domain adaptation methodology. Karnataka State
+    Government adopted Meridian's AI healthcare solutions, including
+    Medipredict for predictive analytics and Meridian Connect for
+    telehealth integration. Mediscan-C and TLV were implemented to
+    enhance medical accuracy, while Meridian's technologies were scaled
+    across Indian state governments under government partnerships."
+
+  Concepts in this community:
+  ----------------------------------------
+    1. Meridian's AI Healthcare Products and Government Adoption
+       Health technology company's AI solutions adopted by Indian
+       state governments
+       Entities: Karnataka State Government, Mediscan-C, Meridian
+                Connect, Medipredict, Meridian
+
+    2. AI Diagnostic Systems and Methodologies
+       Medical AI development frameworks and domain adaptation
+       techniques
+       Entities: Mediscan-C, Mediscan Diagnostic Framework,
+                Transfer-Learn-Validate (Tlv)
+
+==============================================================================
+  COMMUNITY: Community 3
+==============================================================================
+
+  Summary:
+    "Fortis Healthcare and Medanta Group launched Project Fortress, a
+    cybersecurity initiative following the HealthBridge Security Breach,
+    partnering with Deloitte India for network audits. Cert-In issued
+    privacy guidelines for AI healthcare systems, while Arjun Mehta,
+    CISO of Apollo Health Network, led encryption upgrades after
+    temporary hospital network suspensions. Deloitte India also advised
+    Fortis Healthcare on Privacy and Security in AI Healthcare
+    frameworks, integrating Cert-In compliance protocols."
+
+  Concepts in this community:
+  ----------------------------------------
+    1. HealthBridge Security Breach and Hospital Response
+       Hospital network suspensions and security initiatives
+       following cybersecurity incident
+       Entities: Cert-In, Project Fortress, Apollo Health Network,
+                Medanta Group, Fortis Healthcare, Deloitte India
+
+    2. Privacy and Security in AI Healthcare
+       Cybersecurity initiatives and privacy-preserving AI
+       development
+       Entities: Arjun Mehta, Cert-In, Project Fortress, Deloitte
+                India
+
+==============================================================================
+  COMMUNITY: Community 4
+==============================================================================
+
+  Summary:
+    "Tiger Global Management led Series B funding for Meridian,
+    accelerating its expansion into Southeast Asia. Sequoia Capital
+    India provided growth capital to scale Meridian’s AI-driven
+    logistics platform, while Healthventure Partners invested in
+    healthcare-specific product development, advancing Meridian’s
+    diagnostic analytics tools. These investments enabled Meridian to
+    acquire TalentFlow Systems, integrating workforce optimization
+    technology and hiring 150 new engineers."
+
+  Concepts in this community:
+  ----------------------------------------
+    1. Venture Capital Investment in Meridian's Growth
+       Key investors supporting Meridian's expansion and product
+       development
+       Entities: Sequoia Capital India, Healthventure Partners,
+                Tiger Global Management
+
+==============================================================================
+  COMMUNITY: Community 5
+==============================================================================
+
+  Summary:
+    "Dr. Aisha Rahman and Dr. Meera Krishnan led collaborations between
+    Aiims Delhi and the Indian Journal Of Medical Research to validate
+    AI diagnostic technologies. These partnerships conducted clinical
+    studies and published peer-reviewed findings on AI-driven medical
+    diagnostics. Aiims Delhi provided clinical data, while the Indian
+    Journal Of Medical Research served as the publication outlet for
+    their research outcomes."
+
+  Concepts in this community:
+  ----------------------------------------
+    1. Academic and Clinical Research Partnerships
+       Collaborations validating AI diagnostic technologies
+       Entities: Dr. Meera Krishnan, Indian Journal Of Medical
+                Research, Aiims Delhi, Dr. Aisha Rahman
+
+==============================================================================
+  COMMUNITY: Community 6
+==============================================================================
+
+  Summary:
+    "Softbank Vision Fund and Temasek Holdings, venture capital firms,
+    provided Series C funding to support Meridian's expansion."
+
+  Concepts in this community:
+  ----------------------------------------
+    1. Investor Funding for Meridian's Expansion
+       Venture capital firms supporting Meridian's growth through
+       Series C funding
+       Entities: Softbank Vision Fund, Temasek Holdings
+
+==============================================================================
+  COMMUNITY: Community 7
+==============================================================================
+
+  Summary:
+    "Dr. Rahman advanced AI diagnostic algorithms for early disease
+    detection. Dr. Krishnan developed machine learning models for
+    radiology image analysis. Dr. Pradeep Venkatesh pioneered AI-driven
+    pathology tools. Professor Sanjay Gupta integrated AI into clinical
+    decision-making systems. Professor Regina Barzilay collaborated on
+    natural language processing for medical records."
+
+  Concepts in this community:
+  ----------------------------------------
+    1. Researchers in Medical AI Innovation
+       Academic and clinical experts advancing AI diagnostic
+       technologies
+       Entities: Professor Sanjay Gupta, Dr. Pradeep Venkatesh,
+                Dr. Rahman, Dr. Krishnan, Professor Regina
+                Barzilay
+
+==============================================================================
+  COMMUNITY: Community 8
+==============================================================================
+
+  Summary:
+    "Indian State Governments established regulatory frameworks for AI
+    diagnostic validation in healthcare. The Indian Medical Council
+    developed guidelines for AI implementation in medical diagnostics.
+    Both entities collaborated to enforce compliance standards and
+    ensure ethical AI practices in healthcare institutions."
+
+  Concepts in this community:
+  ----------------------------------------
+    1. Regulatory Oversight of AI in Healthcare
+       Government bodies establishing standards for AI diagnostic
+       validation
+       Entities: Indian Medical Council, Indian State Governments
+
+
+==============================================================================
+  SUMMARY STATISTICS
+==============================================================================
+    Communities:  8
+    Concepts:    13
+    Entities:    49
+    Discourse edges: 59
+
+  For the visual graph, open: graph_visualization.html

@@ -1,0 +1,246 @@
+
+========================================================================
+  QUERY: "Who founded Meridian?"
+  Type:  Live Query
+========================================================================
+
+  Why this query? User-specified query for live demonstration.
+
+────────────────────────────────────────────────────────────────────────
+  STEP 1: COMMUNITY MATCHING (Layer 3)
+────────────────────────────────────────────────────────────────────────
+
+  We embed the query into a vector and compare it against the embedding
+  of every community summary using cosine similarity. Communities
+  scoring below 0.35 are filtered out, then top-k are selected.
+
+  [####################..........] 0.6794  Community 1 <-- SELECTED
+      Summary: Dr. Vikram Nair founded Meridian, which developed
+      diagnostic solutions deployed at Novacare Clinics and Telemed
+      Singapore. Meridian integrated Pharmatrack and Mediscan medication
+      tracking systems with
+
+  [##################............] 0.6140  Community 4 <-- SELECTED
+      Summary: "Tiger Global Management led Series B funding for
+      Meridian, accelerating its expansion into Southeast Asia. Sequoia
+      Capital India provided growth capital to scale Meridian’s AI-
+      driven logistics platfo
+
+  [#################.............] 0.5758  Community 2 <-- SELECTED
+      Summary: "Meridian developed Mediscan-C, an AI diagnostic tool
+      integrated into the Mediscan Diagnostic Framework, and created
+      Transfer-Learn-Validate (TLV) as a domain adaptation methodology.
+      Karnataka State G
+
+  [###############...............] 0.5161  Community 6
+  [#############.................] 0.4374  Community 3
+  [############..................] 0.4024  Community 5
+  [###########...................] 0.3991  Community 8
+  [###########...................] 0.3912  Community 7
+
+  => 3 communities selected (threshold=0.35, top-k=3)
+
+────────────────────────────────────────────────────────────────────────
+  STEP 2: CONCEPT DRILL-DOWN + RERANKING (Layer 2)
+────────────────────────────────────────────────────────────────────────
+
+  For each selected community, we follow CONTAINS edges to reach Concept
+  nodes. Then concepts are RERANKED by cosine similarity between their
+  description embedding and the query embedding. Only the top 10 most
+  relevant are kept.
+
+  From "Community 1":
+    -> Concept: "Meridian's Healthcare Technology Innovations"
+        Description: Core product development and deployment of
+        diagnostic and supply chain solutions
+    -> Concept: "Security Challenges and Post-Breach Restructuring"
+        Description: Critical security incident and organizational
+        response to data breach
+    -> Concept: "Pharmaceutical Supply Chain Integration"
+        Description: Implementation of medication tracking systems
+        across distributors
+    -> Concept: "Healthcare Infrastructure Expansion"
+        Description: Deployment of diagnostic solutions across clinical
+        networks
+
+  From "Community 4":
+    -> Concept: "Venture Capital Investment in Meridian's Growth"
+        Description: Key investors supporting Meridian's expansion and
+        product development
+
+  From "Community 2":
+    -> Concept: "Meridian's AI Healthcare Products and Government Adoption"
+        Description: Health technology company's AI solutions adopted by
+        Indian state governments
+    -> Concept: "AI Diagnostic Systems and Methodologies"
+        Description: Medical AI development frameworks and domain
+        adaptation techniques
+
+  7 concepts found, now reranking by query relevance...
+
+  [0.6987] Venture Capital Investment in Meridian's Growth <-- SELECTED
+  [0.4084] Meridian's Healthcare Technology Innovations <-- SELECTED
+  [0.3976] Healthcare Infrastructure Expansion <-- SELECTED
+  [0.3959] Pharmaceutical Supply Chain Integration <-- SELECTED
+  [0.3502] AI Diagnostic Systems and Methodologies <-- SELECTED
+  [0.3494] Security Challenges and Post-Breach Restructuring <-- SELECTED
+  [0.3433] Meridian's AI Healthcare Products and Government Adoption <-- SELECTED
+
+  => 7 concepts selected after reranking
+
+────────────────────────────────────────────────────────────────────────
+  STEP 3: ENTITY COLLECTION + BATCHED BFS (Layer 1)
+────────────────────────────────────────────────────────────────────────
+
+  For each concept, we follow INSTANTIATED_BY edges to reach ground-
+  level Entity nodes (seed entities). Then we perform BATCHED BFS up to
+  2 hops (1 query per hop instead of 2N), following discourse edges.
+  Finally, entities are RERANKED by relevance and capped at 25.
+
+    -> Sequoia Capital India [ORGANIZATION] (from: Venture Capital Investment in Meridian's Growth)
+    -> Healthventure Partners [ORGANIZATION] (from: Venture Capital Investment in Meridian's Growth)
+    -> Tiger Global Management [ORGANIZATION] (from: Venture Capital Investment in Meridian's Growth)
+    -> Dr. Ananya Kapoor [PERSON] (from: Meridian's Healthcare Technology Innovations)
+    -> Dr. Vikram Nair [PERSON] (from: Meridian's Healthcare Technology Innovations)
+    -> Mediscan [PRODUCT] (from: Meridian's Healthcare Technology Innovations)
+    -> Pharmatrack [PRODUCT] (from: Meridian's Healthcare Technology Innovations)
+    -> Healthbridge [PRODUCT] (from: Meridian's Healthcare Technology Innovations)
+    -> Meridian [ORGANIZATION] (from: Meridian's Healthcare Technology Innovations)
+    -> Novacare Clinics [ORGANIZATION] (from: Healthcare Infrastructure Expansion)
+    -> Dr. Rajesh Sundaram [PERSON] (from: Healthcare Infrastructure Expansion)
+    -> Sameer Joshi [PERSON] (from: Pharmaceutical Supply Chain Integration)
+    -> Cipla Ltd [ORGANIZATION] (from: Pharmaceutical Supply Chain Integration)
+    -> Medsupply India [ORGANIZATION] (from: Pharmaceutical Supply Chain Integration)
+    -> Pharmacorp Global [ORGANIZATION] (from: Pharmaceutical Supply Chain Integration)
+    -> Healthline Distributors [ORGANIZATION] (from: Pharmaceutical Supply Chain Integration)
+    -> Mediscan-C [PRODUCT] (from: AI Diagnostic Systems and Methodologies)
+    -> Mediscan Diagnostic Framework [PRODUCT] (from: AI Diagnostic Systems and Methodologies)
+    -> Transfer-Learn-Validate (Tlv) [CONCEPT] (from: AI Diagnostic Systems and Methodologies)
+    -> Priya Sharma [PERSON] (from: Security Challenges and Post-Breach Restructuring)
+    -> Telemed Singapore [ORGANIZATION] (from: Security Challenges and Post-Breach Restructuring)
+    -> Incident Nightfall [EVENT] (from: Security Challenges and Post-Breach Restructuring)
+    -> Karnataka State Government [ORGANIZATION] (from: Meridian's AI Healthcare Products and Government Adoption)
+    -> Meridian Connect [PRODUCT] (from: Meridian's AI Healthcare Products and Government Adoption)
+    -> Medipredict [PRODUCT] (from: Meridian's AI Healthcare Products and Government Adoption)
+
+  Seed entities: 25
+
+  BFS HOP 1 (1 batched query for 25 entities):
+    Mediscan Diagnostic Framework --[VALIDATED]--> Aiims Delhi
+    Incident Nightfall --[DETECTED]--> Arjun Mehta
+    Karnataka State Government --[ADOPTED]--> Covidshield
+    Mediscan --[DEVELOPED]--> Dr. Aisha Rahman
+    Mediscan Diagnostic Framework --[DEVELOPED]--> Dr. Meera Krishnan
+    Mediscan --[CO_DEVELOPED]--> Dr. Pradeep Venkatesh
+    Medipredict --[REGULATED]--> Indian Medical Council
+    Meridian --[PARTNERED_WITH]--> Indian State Governments
+    Pharmatrack --[DEVELOPED]--> Meridian Health Systems
+    Mediscan Diagnostic Framework --[VALIDATED]--> Professor Sanjay Gupta
+    Dr. Ananya Kapoor --[CREATED]--> Project Fortress
+    Mediscan --[TRAINED_ON]--> Sankara Eye Hospital
+
+  BFS HOP 2 (1 batched query for 12 entities):
+    Meridian Health Systems --[AUDITED]--> Deloitte India
+    Meridian Health Systems --[DEVELOPED]--> Healthbridge Api
+    Meridian Health Systems --[PUBLISHED_RESULTS_IN]--> Indian Journal Of Medical Research
+    Meridian Health Systems --[INVESTED_IN]--> Softbank Vision Fund
+    Meridian Health Systems --[INVESTED_IN]--> Temasek Holdings
+
+  Total entities before reranking: 42
+
+  Entity reranking (top entities by query relevance):
+    [0.6904] Healthventure Partners [ORGANIZATION] (hop 0)
+    [0.6814] Sequoia Capital India [ORGANIZATION] (hop 0)
+    [0.6466] Dr. Ananya Kapoor [PERSON] (hop 0)
+    [0.6154] Meridian Health Systems [ORGANIZATION] (hop 1)
+    [0.6124] Meridian [ORGANIZATION] (hop 0)
+    [0.6049] Tiger Global Management [ORGANIZATION] (hop 0)
+    [0.5988] Indian State Governments [ORGANIZATION] (hop 1)
+    [0.5979] Temasek Holdings [ORGANIZATION] (hop 2)
+    [0.5866] Softbank Vision Fund [ORGANIZATION] (hop 2)
+    [0.5825] Telemed Singapore [ORGANIZATION] (hop 0)
+    ... and 15 more
+
+  => 25 entities after reranking + cap (max=25)
+
+────────────────────────────────────────────────────────────────────────
+  STEP 4: CHUNK ASSEMBLY
+────────────────────────────────────────────────────────────────────────
+
+  Each entity links back to the original text chunk it was extracted
+  from (via HAS_ENTITY edges). We collect all unique chunks in a single
+  batched query, sort by document order, and these become the grounding
+  context for the LLM.
+
+  Chunk #1 (via entities: Dr. Ananya Kapoor, Dr. Vikram Nair, Healthventure Partners, Meridian Health Systems, Novacare Clinics):
+    "MERIDIAN HEALTH SYSTEMS — FOUNDING AND EARLY YEARS (2014-2017)  Dr.
+    Ananya Kapoor, a former biomedical researcher at the Indian
+    Institute of Science (IISc) Bangalore, founded Meridian Health
+    Systems i..."
+
+  Chunk #2 (via entities: Dr. Meera Krishnan, Dr. Rajesh Sundaram):
+    "y care centers across Maharashtra and Karnataka, adopted
+    HealthBridge as their standard data exchange platform. This deal was
+    worth $1.8 million annually and gave Meridian access to anonymized
+    data fr..."
+
+  Chunk #3 (via entities: Healthline Distributors, Medsupply India, Pharmacorp Global, Sameer Joshi, Tiger Global Management):
+    "rom HealthBridge licensing fees and the NovaCare contract.
+    MERIDIAN HEALTH SYSTEMS — GROWTH AND EXPANSION (2017-2019)  In April
+    2017, Meridian Health Systems raised $18 million in Series B funding
+    l..."
+
+  Chunk #4 (via entities: Dr. Aisha Rahman, Telemed Singapore):
+    "e QR code that could be scanned at every point in the supply chain,
+    and patients could verify authenticity using a free mobile app.
+    Meanwhile, Dr. Vikram Nair expanded MediScan's capabilities
+    signifi..."
+
+  Chunk #5 (via entities: Incident Nightfall):
+    "ation platform was integrated with HealthBridge, creating
+    Meridian's first cross-border health data exchange capability.  By
+    mid-2019, Meridian had 210 employees across four offices (Bangalore,
+    Hydera..."
+
+  Chunk #6 (via entities: Karnataka State Government):
+    "nto a single system built on top of the existing HealthBridge
+    infrastructure.  Dr. Vikram Nair led a team of 40 engineers in what
+    became known as the "100-Day Sprint." The team worked in three
+    shifts ..."
+
+  Chunk #7 (via entities: Meridian Connect):
+    "vaccination sites, handling over 2 million COVID tests through the
+    CovidShield platform.  Dr. Aisha Rahman adapted MediScan's AI models
+    to detect COVID-19 patterns in chest X-rays. The COVID variant o..."
+
+  Chunk #8 (via entities: Softbank Vision Fund, Temasek Holdings):
+    "o vaccination centers. The system flagged 847 temperature excursion
+    events in its first month, potentially saving over 200,000 vaccine
+    doses from spoilage.  In October 2020, the SoftBank Vision Fund
+    r..."
+
+  ... and 4 more chunks
+
+  => 12 chunks assembled in document order
+
+────────────────────────────────────────────────────────────────────────
+  STEP 5: ANSWER GENERATION
+────────────────────────────────────────────────────────────────────────
+
+  The 12 assembled chunks are sent to the LLM (qwen/qwen3-32b) as
+  grounding context along with the original question. The LLM generates
+  an answer strictly from this context.
+
+  ANSWER:
+    Meridian Health Systems was founded by Dr. Ananya Kapoor in January
+    2014. A former biomedical researcher at the Indian Institute of
+    Science (IISc) Bangalore, she established the company to create an
+    integrated healthcare data platform. Her vision aimed to connect
+    hospitals, diagnostic labs, and pharmacies across India’s fragmented
+    healthcare ecosystem, leading to the development of key products
+    like HealthBridge API and MediScan.
+
+========================================================================
+  FLOW SUMMARY:
+    Query -> 3 Communities (threshold=0.35) -> 7 Concepts (reranked) -> 25 Seed + 8 BFS -> 25 Entities (reranked, capped at 25) -> 12 Chunks -> Answer
+========================================================================

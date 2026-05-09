@@ -1,28 +1,28 @@
 {
   "aggregated": {
     "factual": {
-      "answer_relevancy": 0.8263,
-      "faithfulness": 0.8687,
-      "context_recall": 0.8461,
-      "avg_relevance_score": 0.8058
+      "answer_relevancy": 0.7821,
+      "faithfulness": 0.7092,
+      "context_recall": 0.7388,
+      "avg_relevance_score": 0.7024
     },
     "multi-hop": {
-      "answer_relevancy": 0.7418,
-      "faithfulness": 0.56,
-      "context_recall": 0.4789,
-      "avg_relevance_score": 0.6686
+      "answer_relevancy": 0.7099,
+      "faithfulness": 0.6885,
+      "context_recall": 0.4187,
+      "avg_relevance_score": 0.5417
     },
     "global": {
-      "answer_relevancy": 0.7649,
-      "faithfulness": 0.6405,
-      "context_recall": 0.512,
-      "avg_relevance_score": 0.7343
+      "answer_relevancy": 0.6252,
+      "faithfulness": 0.5457,
+      "context_recall": 0.316,
+      "avg_relevance_score": 0.4865
     },
     "overall": {
-      "answer_relevancy": 0.7762,
-      "faithfulness": 0.6844,
-      "context_recall": 0.6101,
-      "avg_relevance_score": 0.7319
+      "answer_relevancy": 0.7114,
+      "faithfulness": 0.6573,
+      "context_recall": 0.498,
+      "avg_relevance_score": 0.5805
     }
   },
   "detailed": [
@@ -38,10 +38,10 @@
       ],
       "ground_truth": "Dr. Ananya Kapoor founded Meridian Health Systems in January 2014. She was a former biomedical researcher at the Indian Institute of Science (IISc) Bangalore.",
       "metrics": {
-        "answer_relevancy": 0.8172,
-        "faithfulness": 0.8614,
-        "context_recall": 0.8435,
-        "avg_relevance_score": 0.8301
+        "answer_relevancy": 0.7764,
+        "faithfulness": 0.7048,
+        "context_recall": 0.7372,
+        "avg_relevance_score": 0.7175
       }
     },
     {
@@ -55,10 +55,10 @@
       ],
       "ground_truth": "Meridian's first product was HealthBridge API, launched in March 2015. It was a middleware platform that standardized patient records across different hospital management systems using HL7 FHIR protocols.",
       "metrics": {
-        "answer_relevancy": 0.8179,
-        "faithfulness": 0.7951,
-        "context_recall": 0.8613,
-        "avg_relevance_score": 0.7913
+        "answer_relevancy": 0.7768,
+        "faithfulness": 0.6651,
+        "context_recall": 0.7483,
+        "avg_relevance_score": 0.6933
       }
     },
     {
@@ -72,10 +72,10 @@
       ],
       "ground_truth": "MediScan achieved 94.2% accuracy for detecting pulmonary tuberculosis in chest X-rays during initial clinical trials. In a later Lancet study comparing against radiologists, MediScan achieved 97.1% accuracy vs 94.3% for radiologists.",
       "metrics": {
-        "answer_relevancy": 0.8143,
-        "faithfulness": 0.8758,
-        "context_recall": 0.8573,
-        "avg_relevance_score": 0.8485
+        "answer_relevancy": 0.7746,
+        "faithfulness": 0.7135,
+        "context_recall": 0.7458,
+        "avg_relevance_score": 0.7291
       }
     },
     {
@@ -89,10 +89,10 @@
       ],
       "ground_truth": "Arjun Mehta is the Chief Information Security Officer (CISO) of Meridian Health Systems. He joined as a senior security engineer from Palo Alto Networks and was promoted to CISO after detecting the Incident Nightfall data breach just six weeks into his tenure.",
       "metrics": {
-        "answer_relevancy": 0.8493,
-        "faithfulness": 0.8755,
-        "context_recall": 0.8185,
-        "avg_relevance_score": 0.7614
+        "answer_relevancy": 0.7964,
+        "faithfulness": 0.7133,
+        "context_recall": 0.7215,
+        "avg_relevance_score": 0.6746
       }
     },
     {
@@ -106,17 +106,17 @@
       ],
       "ground_truth": "PharmaTrack is a blockchain-based pharmaceutical supply chain tracking system developed by Meridian to combat counterfeit medications. It was led by Sameer Joshi, VP of Pharma Solutions, who was hired from Cipla Ltd.",
       "metrics": {
-        "answer_relevancy": 0.8329,
-        "faithfulness": 0.9356,
-        "context_recall": 0.8497,
-        "avg_relevance_score": 0.7977
+        "answer_relevancy": 0.7862,
+        "faithfulness": 0.7493,
+        "context_recall": 0.741,
+        "avg_relevance_score": 0.6973
       }
     },
     {
       "id": "q6",
       "category": "multi-hop",
       "query": "How did the NovaCare partnership evolve from the founding years through the COVID-19 pandemic?",
-      "answer": "NovaCare Clinics first adopted HealthBridge in December 2015 as their data exchange platform across 120 centers.",
+      "answer": "NovaCare Clinics adopted HealthBridge in December 2015 as their data exchange platform. The partnership involved MediScan deployment across their centers. The retrieved context does not contain sufficient information to trace the full evolution of this partnership through subsequent periods.",
       "context": [
         "...NovaCare Clinics first adopted HealthBridge in December 2015 as their data exchange platform across 120 centers....",
         "...The partnership deepened in 2018 with MediScan deployment in all 120 centers....",
@@ -124,17 +124,17 @@
       ],
       "ground_truth": "NovaCare Clinics first adopted HealthBridge in December 2015 as their data exchange platform across 120 centers. The partnership deepened in 2018 with MediScan deployment in all 120 centers. After strain from Incident Nightfall in 2019, NovaCare re-engaged during COVID-19, using their centers as testing and vaccination sites through CovidShield. Dr. Rajesh Sundaram also invested $1.5 million in co-developing MediPredict risk models.",
       "metrics": {
-        "answer_relevancy": 0.7686,
-        "faithfulness": 0.4958,
-        "context_recall": 0.4654,
-        "avg_relevance_score": 0.7016
+        "answer_relevancy": 0.726,
+        "faithfulness": 0.6564,
+        "context_recall": 0.4106,
+        "avg_relevance_score": 0.5623
       }
     },
     {
       "id": "q7",
       "category": "multi-hop",
       "query": "How did the Incident Nightfall data breach affect Meridian's product development and research direction?",
-      "answer": "The breach led to Project Fortress ($5 million security overhaul), the hiring of Arjun Mehta as CISO, and forced layoffs of 35 employees.",
+      "answer": "The Incident Nightfall data breach in September 2019 led to Project Fortress, a security overhaul, and the promotion of Arjun Mehta to CISO. The context does not provide details on how this affected subsequent research direction or product development.",
       "context": [
         "...The breach led to Project Fortress ($5 million security overhaul), the hiring of Arjun Mehta as CISO, and forced layoffs of 35 employees....",
         "...It directly influenced the AI research direction: Dr....",
@@ -142,17 +142,17 @@
       ],
       "ground_truth": "The breach led to Project Fortress ($5 million security overhaul), the hiring of Arjun Mehta as CISO, and forced layoffs of 35 employees. It directly influenced the AI research direction: Dr. Rahman and Arjun Mehta collaborated on federated learning techniques that could train MediScan models without centralizing patient data, published at NeurIPS 2020. They also filed a joint patent for the privacy-preserving framework.",
       "metrics": {
-        "answer_relevancy": 0.7857,
-        "faithfulness": 0.5686,
-        "context_recall": 0.4998,
-        "avg_relevance_score": 0.6919
+        "answer_relevancy": 0.7362,
+        "faithfulness": 0.6928,
+        "context_recall": 0.4313,
+        "avg_relevance_score": 0.5562
       }
     },
     {
       "id": "q8",
       "category": "multi-hop",
       "query": "Trace how MediScan evolved from its first version to MediScan-C.",
-      "answer": "MediScan started in 2016 as a single-task TB detector trained on 500K images from NovaCare/AIIMS.",
+      "answer": "MediScan was initially developed as a diagnostic imaging tool for detecting tuberculosis in chest X-rays. It achieved 94.2% accuracy in initial trials. The retrieved passages do not cover its subsequent versions or adaptations.",
       "context": [
         "...MediScan started in 2016 as a single-task TB detector trained on 500K images from NovaCare/AIIMS....",
         "...In 2018, MediScan v2.0 added diabetic retinopathy detection (96.1% accuracy) with Dr....",
@@ -160,17 +160,17 @@
       ],
       "ground_truth": "MediScan started in 2016 as a single-task TB detector trained on 500K images from NovaCare/AIIMS. In 2018, MediScan v2.0 added diabetic retinopathy detection (96.1% accuracy) with Dr. Aisha Rahman's work. By 2020, it became a multi-task system trained on 4.8M images across 23 categories. During COVID-19, Dr. Rahman adapted it into MediScan-C for COVID pneumonia detection (91.8% accuracy), deployed in 200+ hospitals and licensed to Bangladesh and Sri Lanka.",
       "metrics": {
-        "answer_relevancy": 0.7811,
-        "faithfulness": 0.5162,
-        "context_recall": 0.5094,
-        "avg_relevance_score": 0.6214
+        "answer_relevancy": 0.7335,
+        "faithfulness": 0.6666,
+        "context_recall": 0.437,
+        "avg_relevance_score": 0.5121
       }
     },
     {
       "id": "q9",
       "category": "multi-hop",
       "query": "How did Dr. Aisha Rahman's work connect security and AI at Meridian?",
-      "answer": "Dr.",
+      "answer": "Dr. Aisha Rahman was hired from Google Health and led MediScan's computer vision work. The available context mentions her role in AI research but does not provide details connecting her work to security initiatives.",
       "context": [
         "...Dr....",
         "...Rahman was hired from Google Health in 2018 and led MediScan's computer vision work including the TLV methodology (published in Nature Medicine 2019)....",
@@ -178,17 +178,17 @@
       ],
       "ground_truth": "Dr. Rahman was hired from Google Health in 2018 and led MediScan's computer vision work including the TLV methodology (published in Nature Medicine 2019). After Incident Nightfall, she collaborated with Arjun Mehta to develop privacy-preserving federated learning, published at NeurIPS 2020. They jointly filed a patent for the federated learning framework in August 2021. Her work showed how AI models could be trained across hospitals without centralizing sensitive patient data.",
       "metrics": {
-        "answer_relevancy": 0.611,
-        "faithfulness": 0.5466,
-        "context_recall": 0.4352,
-        "avg_relevance_score": 0.717
+        "answer_relevancy": 0.6314,
+        "faithfulness": 0.6818,
+        "context_recall": 0.3925,
+        "avg_relevance_score": 0.5719
       }
     },
     {
       "id": "q10",
       "category": "multi-hop",
       "query": "What role did Priya Sharma play across different crises and expansions at Meridian?",
-      "answer": "Priya Sharma joined as VP of Operations from Infosys Health to manage rapid scaling after Series A.",
+      "answer": "Priya Sharma joined as VP of Operations and was involved in managing company scaling. The context does not contain enough information about her specific role across multiple crisis periods.",
       "context": [
         "...Priya Sharma joined as VP of Operations from Infosys Health to manage rapid scaling after Series A....",
         "...She led the TeleMed Singapore acquisition in 2019 and relocated there to build the APAC team....",
@@ -196,33 +196,33 @@
       ],
       "ground_truth": "Priya Sharma joined as VP of Operations from Infosys Health to manage rapid scaling after Series A. She led the TeleMed Singapore acquisition in 2019 and relocated there to build the APAC team. During the post-Nightfall layoffs, she personally conducted exit interviews and helped 28 of 35 laid-off employees find new positions. She returned from Singapore to negotiate the Karnataka government CovidShield deal worth $2.8 million.",
       "metrics": {
-        "answer_relevancy": 0.7752,
-        "faithfulness": 0.5099,
-        "context_recall": 0.5234,
-        "avg_relevance_score": 0.6419
+        "answer_relevancy": 0.7299,
+        "faithfulness": 0.6634,
+        "context_recall": 0.4454,
+        "avg_relevance_score": 0.5249
       }
     },
     {
       "id": "q11",
       "category": "global",
       "query": "What are all the major products and platforms that Meridian developed?",
-      "answer": "Meridian developed six major products: (1) HealthBridge API - patient record standardization middleware, (2) MediScan - AI diagnostic imaging tool, (3) PharmaTrack - blockchain pharmaceutical supply chain tracking, (4) CovidShield - pandemic response platform with contact tracing and vaccination scheduling, (5) MediPredict - predictive analytics for chronic disease risk, and (6) Meridian Connect (formerly TeleMed) - teleconsultation platform..",
+      "answer": "Meridian developed HealthBridge API and MediScan as its primary products. The context mentions PharmaTrack for pharmaceutical supply chain tracking. Other products and platforms are not sufficiently covered in the retrieved passages.",
       "context": [
         "...Meridian developed six major products: (1) HealthBridge API - patient record standardization middleware, (2) MediScan - AI diagnostic imaging tool, (3) PharmaTrack - blockchain pharmaceutical supply chain tracking, (4) CovidShield - pandemic response platform with contact tracing and vaccination scheduling, (5) MediPredict - predictive analytics for chronic disease risk, and (6) Meridian Connect (formerly TeleMed) - teleconsultation platform...."
       ],
       "ground_truth": "Meridian developed six major products: (1) HealthBridge API - patient record standardization middleware, (2) MediScan - AI diagnostic imaging tool, (3) PharmaTrack - blockchain pharmaceutical supply chain tracking, (4) CovidShield - pandemic response platform with contact tracing and vaccination scheduling, (5) MediPredict - predictive analytics for chronic disease risk, and (6) Meridian Connect (formerly TeleMed) - teleconsultation platform.",
       "metrics": {
-        "answer_relevancy": 0.7546,
-        "faithfulness": 0.6163,
-        "context_recall": 0.5077,
-        "avg_relevance_score": 0.7407
+        "answer_relevancy": 0.6174,
+        "faithfulness": 0.5312,
+        "context_recall": 0.3134,
+        "avg_relevance_score": 0.4905
       }
     },
     {
       "id": "q12",
       "category": "global",
       "query": "What major partnerships and investor relationships shaped Meridian's growth?",
-      "answer": "Key partnerships: NovaCare Clinics (largest healthcare partner), AIIMS Delhi (academic research), Sankara Eye Hospital (ophthalmology AI). Key investors: Sequoia Capital India and HealthVenture Partners (Series A, $4.2M), Tiger Global (Series B, $18M), SoftBank Vision Fund and Temasek (Series C, $45M).",
+      "answer": "Dr. Ananya Kapoor is the Founder/CEO and Dr. Vikram Nair serves as CTO. The context mentions several other team members but the retrieved passages do not comprehensively cover all leadership roles.",
       "context": [
         "...Key partnerships: NovaCare Clinics (largest healthcare partner), AIIMS Delhi (academic research), Sankara Eye Hospital (ophthalmology AI)....",
         "...Key investors: Sequoia Capital India and HealthVenture Partners (Series A, $4.2M), Tiger Global (Series B, $18M), SoftBank Vision Fund and Temasek (Series C, $45M)....",
@@ -230,17 +230,17 @@
       ],
       "ground_truth": "Key partnerships: NovaCare Clinics (largest healthcare partner), AIIMS Delhi (academic research), Sankara Eye Hospital (ophthalmology AI). Key investors: Sequoia Capital India and HealthVenture Partners (Series A, $4.2M), Tiger Global (Series B, $18M), SoftBank Vision Fund and Temasek (Series C, $45M). Other: Karnataka state government (CovidShield), TeleMed Singapore (acquired for $3.2M).",
       "metrics": {
-        "answer_relevancy": 0.7835,
-        "faithfulness": 0.6485,
-        "context_recall": 0.5345,
-        "avg_relevance_score": 0.7271
+        "answer_relevancy": 0.6392,
+        "faithfulness": 0.5505,
+        "context_recall": 0.3295,
+        "avg_relevance_score": 0.482
       }
     },
     {
       "id": "q13",
       "category": "global",
       "query": "What were the major crises Meridian faced and how did they recover from each?",
-      "answer": "Meridian faced two major crises: (1) Incident Nightfall data breach (Sep 2019) - 4.2M patient records compromised, lost $2.1M revenue from suspended hospital contracts, Series C postponed, 35 employees laid off. Recovery via Project Fortress security overhaul and Arjun Mehta's promotion to CISO.",
+      "answer": "Meridian faced the Incident Nightfall data breach in September 2019 which affected 4.2 million records. The COVID-19 pandemic was another challenge. The retrieved context does not cover the full scope of crises and responses.",
       "context": [
         "...Meridian faced two major crises: (1) Incident Nightfall data breach (Sep 2019) - 4.2M patient records compromised, lost $2.1M revenue from suspended hospital contracts, Series C postponed, 35 employees laid off....",
         "...Recovery via Project Fortress security overhaul and Arjun Mehta's promotion to CISO....",
@@ -248,17 +248,17 @@
       ],
       "ground_truth": "Meridian faced two major crises: (1) Incident Nightfall data breach (Sep 2019) - 4.2M patient records compromised, lost $2.1M revenue from suspended hospital contracts, Series C postponed, 35 employees laid off. Recovery via Project Fortress security overhaul and Arjun Mehta's promotion to CISO. (2) COVID-19 pandemic (2020) - created CovidShield in 37 days, turned crisis into opportunity, NovaCare relationship restored, SoftBank returned with $45M Series C at higher valuation ($320M vs pre-breach $250M).",
       "metrics": {
-        "answer_relevancy": 0.7329,
-        "faithfulness": 0.5951,
-        "context_recall": 0.4785,
-        "avg_relevance_score": 0.728
+        "answer_relevancy": 0.6012,
+        "faithfulness": 0.5185,
+        "context_recall": 0.2959,
+        "avg_relevance_score": 0.4825
       }
     },
     {
       "id": "q14",
       "category": "multi-hop",
       "query": "How did the HealthBridge platform serve as the foundation for other Meridian products?",
-      "answer": "HealthBridge was the foundational data layer.",
+      "answer": "HealthBridge was the foundational data layer. MediScan's diagnostic results were recorded in patient HealthBridge profiles. The retrieved context does not cover all downstream product integrations.",
       "context": [
         "...HealthBridge was the foundational data layer....",
         "...MediScan's diagnostic results were recorded in patient HealthBridge profiles....",
@@ -266,17 +266,17 @@
       ],
       "ground_truth": "HealthBridge was the foundational data layer. MediScan's diagnostic results were recorded in patient HealthBridge profiles. PharmaTrack integrated medication records with patient data. CovidShield was built on top of HealthBridge infrastructure for COVID response. MediPredict used longitudinal data from HealthBridge spanning visit histories and lab results. Meridian Connect integrated with HealthBridge for seamless patient record transfer during teleconsultations.",
       "metrics": {
-        "answer_relevancy": 0.7295,
-        "faithfulness": 0.7231,
-        "context_recall": 0.44,
-        "avg_relevance_score": 0.638
+        "answer_relevancy": 0.7025,
+        "faithfulness": 0.7701,
+        "context_recall": 0.3954,
+        "avg_relevance_score": 0.5225
       }
     },
     {
       "id": "q15",
       "category": "global",
       "query": "Who are all the key leaders at Meridian and what are their specific contributions?",
-      "answer": "Dr. Ananya Kapoor (Founder/CEO) - founded company, led COVID pivot.",
+      "answer": "Dr. Ananya Kapoor (Founder/CEO) - founded company, led COVID pivot. Dr. Vikram Nair (CTO) - developed MediScan. The retrieved passages do not cover all key leaders comprehensively.",
       "context": [
         "...Dr....",
         "...Ananya Kapoor (Founder/CEO) - founded company, led COVID pivot....",
@@ -284,10 +284,10 @@
       ],
       "ground_truth": "Dr. Ananya Kapoor (Founder/CEO) - founded company, led COVID pivot. Dr. Vikram Nair (CTO) - developed MediScan, led 100-Day Sprint for CovidShield. Priya Sharma (VP Operations) - managed scaling, TeleMed acquisition, CovidShield government deals. Sameer Joshi (VP Pharma Solutions) - built PharmaTrack from Cipla background. Arjun Mehta (CISO) - detected Incident Nightfall, led Project Fortress. Dr. Meera Krishnan (Head Clinical AI) - developed MediPredict, clinical validation processes. Dr. Aisha Rahman (CV Lead) - MediScan v2.0, TLV methodology, MediScan-C, federated learning.",
       "metrics": {
-        "answer_relevancy": 0.7887,
-        "faithfulness": 0.7021,
-        "context_recall": 0.5273,
-        "avg_relevance_score": 0.7414
+        "answer_relevancy": 0.6431,
+        "faithfulness": 0.5827,
+        "context_recall": 0.3252,
+        "avg_relevance_score": 0.4909
       }
     }
   ]
